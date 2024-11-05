@@ -1,5 +1,6 @@
 package com.ClientManager.clientcrud.models;
 
+import com.ClientManager.clientcrud.exceptions.FieldRequiredException;
 import jakarta.persistence.*;
 
 @Entity
@@ -104,6 +105,38 @@ public class ClientModels {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    // Método para validar campos obrigatórios
+    public void validate() {
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new FieldRequiredException("nome");
+        }
+        if (email == null || email.trim().isEmpty()) {
+            throw new FieldRequiredException("email");
+        }
+        if (cep == null || cep.trim().isEmpty()) {
+            throw new FieldRequiredException("cep");
+        }
+        if (logradouro == null || logradouro.trim().isEmpty()) {
+            throw new FieldRequiredException("logradouro");
+        }
+        if (bairro == null || bairro.trim().isEmpty()) {
+            throw new FieldRequiredException("bairro");
+        }
+        if (localidade == null || localidade.trim().isEmpty()) {
+            throw new FieldRequiredException("localidade");
+        }
+        if (estado == null || estado.trim().isEmpty()) {
+            throw new FieldRequiredException("estado");
+        }
+    }
+
+    public void validateCep() {
+        if (cep == null || cep.trim().isEmpty()) {
+            throw new FieldRequiredException("cep");
+        }
+    }
+
 
     @Override
     public String toString() {

@@ -1,5 +1,6 @@
 package com.ClientManager.clientcrud.service;
 
+import com.ClientManager.clientcrud.exceptions.EmailAlreadyExistsException;
 import com.ClientManager.clientcrud.models.ClientModels;
 import com.ClientManager.clientcrud.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,22 +14,20 @@ import java.util.function.Consumer;
 @Service
 public class ClientService {
 
-    public ClientModels findById (Long id){
-        return clientRepository.findById(id).orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-    }
-
     public ClientModels findByEmail(String email) {
         return clientRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> new EmailAlreadyExistsException(email));
     }
 
     public ClientModels createClient(ClientModels newClient) {
 
         if (clientRepository.findByEmail(newClient.getEmail()).isPresent()) {
-            throw new RuntimeException("Cliente já existe com o email: " + newClient.getEmail());
+            throw new EmailAlreadyExistsException(newClient.getEmail());
         }
 
         try {
+            newClient.validateCep();
+
             ClientModels endereco = CepServiceUtil.getEndereco(newClient.getCep());
             if (endereco != null) {
                 newClient.setLogradouro(endereco.getLogradouro());
@@ -40,9 +39,10 @@ public class ClientService {
             throw new RuntimeException("Erro ao buscar informações de endereço para o CEP: " + newClient.getCep(), e);
         }
 
+        newClient.validate();
+
         return clientRepository.save(newClient);
     }
-
 
     public ClientModels updateClient(String email, ClientModels upclient) {
         ClientModels client = findByEmail(email);
