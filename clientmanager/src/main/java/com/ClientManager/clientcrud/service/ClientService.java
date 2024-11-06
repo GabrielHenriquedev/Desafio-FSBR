@@ -1,5 +1,6 @@
 package com.ClientManager.clientcrud.service;
 
+import com.ClientManager.clientcrud.exceptions.CepInvalidoException;
 import com.ClientManager.clientcrud.exceptions.EmailAlreadyExistsException;
 import com.ClientManager.clientcrud.models.ClientModels;
 import com.ClientManager.clientcrud.repository.ClientRepository;
@@ -24,7 +25,6 @@ public class ClientService {
     }
 
     public ClientModels createClient(ClientModels newClient) {
-
         if (clientRepository.findByEmail(newClient.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException(newClient.getEmail());
         }
@@ -32,21 +32,24 @@ public class ClientService {
         try {
             newClient.validateCep();
 
-            ClientModels endereco = CepServiceUtil.getEndereco(newClient.getCep());
+            ClientModels endereco = CepServiceUtil.getCep(newClient.getCep());
             if (endereco != null) {
                 newClient.setLogradouro(endereco.getLogradouro());
                 newClient.setBairro(endereco.getBairro());
                 newClient.setLocalidade(endereco.getLocalidade());
                 newClient.setEstado(endereco.getEstado());
             }
+        } catch (CepInvalidoException e) {
+            throw new RuntimeException("Erro ao buscar informações de endereço para o CEP: " + newClient.getCep() + ". CEP inválido.", e);
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao buscar informações de endereço para o CEP: " + newClient.getCep(), e);
+            throw new RuntimeException("Erro ao acessar o serviço de CEP para o CEP: " + newClient.getCep(), e);
         }
-
         newClient.validate();
+
 
         return clientRepository.save(newClient);
     }
+
 
     public ClientModels updateClient(String email, ClientModels upclient) {
         ClientModels client = findByEmail(email);
@@ -55,19 +58,22 @@ public class ClientService {
         Optional.ofNullable(upclient.getEmail()).ifPresent(client::setEmail);
         Optional.ofNullable(upclient.getTelefone()).ifPresent(client::setTelefone);
 
+
         if (upclient.getCep() != null && !upclient.getCep().isEmpty()) {
             client.setCep(upclient.getCep());
 
             try {
-                ClientModels endereco = CepServiceUtil.getEndereco(upclient.getCep());
+                ClientModels endereco = CepServiceUtil.getCep(upclient.getCep());
                 if (endereco != null) {
                     client.setLogradouro(endereco.getLogradouro());
                     client.setBairro(endereco.getBairro());
                     client.setLocalidade(endereco.getLocalidade());
                     client.setEstado(endereco.getEstado());
                 }
+            } catch (CepInvalidoException e) {
+                throw new RuntimeException("Erro ao buscar informações de endereço para o CEP: " + upclient.getCep() + ". CEP inválido.", e);
             } catch (IOException e) {
-                throw new RuntimeException("Erro ao buscar informações de endereço para o CEP: " + upclient.getCep(), e);
+                throw new RuntimeException("Erro ao acessar o serviço de CEP para o CEP: " + upclient.getCep(), e);
             }
         } else {
             Optional.ofNullable(upclient.getLogradouro()).ifPresent(client::setLogradouro);
@@ -78,6 +84,7 @@ public class ClientService {
 
         return clientRepository.save(client);
     }
+
 
     public void deleteClient(String email) {
         ClientModels delClient = findByEmail(email);

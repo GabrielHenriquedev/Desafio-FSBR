@@ -3,6 +3,7 @@ package com.ClientManager.clientcrud.service;
 
 import java.io.IOException;
 
+import com.ClientManager.clientcrud.exceptions.CepInvalidoException;
 import com.ClientManager.clientcrud.models.ClientModels;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -16,12 +17,8 @@ import com.google.gson.Gson;
 
 public  abstract class CepServiceUtil {
 
-    private CepServiceUtil() {
-
-    }
-    public static ClientModels getEndereco(String cep) throws IOException {
-
-        ClientModels end = null;
+    public static ClientModels getCep(String cep) throws IOException, CepInvalidoException {
+        ClientModels endereco = null;
         HttpGet request = new HttpGet("https://viacep.com.br/ws/" + cep + "/json/");
 
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableRedirectHandling().build();
@@ -31,18 +28,18 @@ public  abstract class CepServiceUtil {
             if (entity != null) {
                 String result = EntityUtils.toString(entity);
                 Gson gson = new Gson();
-                end = gson.fromJson(result, ClientModels.class);
-            }
+                endereco = gson.fromJson(result, ClientModels.class);
 
+                // Verifica se o JSON retornado contém um erro, o que indicaria um CEP inválido
+                if (endereco.getLogradouro() == null || endereco.getBairro() == null) {
+                    throw new CepInvalidoException("CEP inválido ou não encontrado: " + cep);
+                }
+            }
         }
 
-        return end;
+        return endereco;
     }
 
-    public static void getCep (String cep) throws IOException {
 
-        ClientModels endereco = getEndereco(cep);
-        System.out.println(endereco != null ? endereco.toString() : "Endereço não encontrado.");
-    }
 }
 
