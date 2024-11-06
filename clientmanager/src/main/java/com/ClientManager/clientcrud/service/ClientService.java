@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -17,6 +18,9 @@ public class ClientService {
     public ClientModels findByEmail(String email) {
         return clientRepository.findByEmail(email)
                 .orElseThrow(() -> new EmailAlreadyExistsException(email));
+    }
+    public List<ClientModels> fetchClients() {
+        return clientRepository.findAll();
     }
 
     public ClientModels createClient(ClientModels newClient) {
