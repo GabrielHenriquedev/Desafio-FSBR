@@ -19,9 +19,9 @@ Para rodar a aplicação em um ambiente Docker, siga os passos abaixo:
 1. Clonar o Repositório
 Primeiro, clone o repositório em sua máquina local:
 
-`git clone https://github.com/seu-usuario/seu-repositorio.git`
+` git clone https://github.com/seu-usuario/seu-repositorio.git`
 
-`cd seu-repositorio`
+` cd seu-repositorio`
 
 2. Compilar a Aplicação
 Certifique-se de ter o Maven instalado em sua máquina e compile o projeto com o seguinte comando:
@@ -41,7 +41,7 @@ Após construir a imagem, execute o container com o seguinte comando:
 Após executar o container, você pode acessar a API em:
 
 
-` http://localhost:8080/clientes `
+` http://localhost:8080/`
 
 
 ## API de Clientes
